@@ -60,22 +60,23 @@
   /**
    * Takes fn = function(arg1, arg2, cb) {...}
    * Returns    function(arg1, arg2) { 
-                  fn(arg1, arg2, fakeCb)
-                  return function(cb) {...}
-                }
+   *              fn(arg1, arg2, fakeCb)
+   *              return function(cb) {...}
+   *            }
    * The result of starx.yieldable(fn)() is a function accepting a callback
    * so that it can be used as a 'yieldable' of starx (see @wrap).
    *
-   * Example:
-   *  var request = require('request') // request of form function(url|options, cb)
-   *  request = starx.yieldable(request) // request now of form function(url|options)
-   *  // Inside a generator:
-   *  var res = yield request(someUrl) 
+   * @param {fn} the function to be converted to a yieldable 
+   * @param {forceArgs} 
+   *   if true, pass through only (fn.length-1) arguments
+   *   if number, pass through only (forceArgs-1) arguments
+   *   otherwise, pass through all arguments
    */
-  starx.yieldable = function(fn) {
+  starx.yieldable = function(fn, forceArgs) {
     if (!isFunction(fn)) throw new TypeError()
     return function() {
-      var args = [].slice.call(arguments), 
+      var end = forceArgs == null ? arguments.length : (forceArgs === true ? fn.length : forceArgs)-1,
+          args = [].slice.call(arguments, 0, end), 
           cb, results, called
       args.push(function fake() {
         results = arguments
@@ -97,7 +98,7 @@
 
   function noop() {}
   // Badass DRY
-  var fns = ['Array', 'Function', 'String', 'Number'],
+  var fns = ['Array', 'Function', 'String', 'Number', 'Boolean'],
       template = (function is$(o) { return Object.prototype.toString.call(o) === '[object $]' }).toString()
   for (var i = 0; fns[i]; i++) eval(template.replace(/\$/g, fns[i]))
 })()

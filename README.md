@@ -124,6 +124,26 @@ starx(function*() {
 })()
 ```
 
+You might think we could have written:
+```javascript
+yield [urls].map(request)
+```
+
+But that wouldn't work. The reason is `map` invoke `request` with not just the element, but also its index and the original array. Because `yieldable` passes through all arguments by default, `request` would end up being invoked with those 3 arguments while it actually expects the second argument to be 
+a callback. 
+
+To make this work, either explicitly invoke `request` with `url` as the previous example or provide a second argument to `yieldable`: `forceArgs`. If `forceArgs` is true, `yieldable` limits the number of arguments passed through to be `fn.length-1`. If `forceArgs` is a number, `yieldable` limits the number of arguments to be `forceArgs-1`.
+
+We can revise the previous example as follows:
+
+```
+request = starx.yieldable(require('request'), true /* forceArgs */)
+starx(function*() {
+  var res = yield [urls].map(request)
+  console.log(size(yield res), "bytes")
+})()
+```
+
 ## Install
 #### NPM
 ```

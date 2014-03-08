@@ -1,6 +1,6 @@
 require('./helper')
 starx   = require('../index')
-request = starx.yieldable(require('request'))
+request = starx.yieldable(require('request'), true)
 
 starx(function*() {
   var r1 = request("https://www.google.com/")
@@ -14,8 +14,6 @@ starx(function*() {
   var res = yield [
     "https://www.google.com/", 
     "https://www.bing.com/", 
-    "https://www.yahoo.com/"].map(function(url) {
-      return request(url)
-    })
+    "https://www.yahoo.com/"].map(request)
   console.log(size(yield res), "bytes")
 })()
