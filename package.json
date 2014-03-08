@@ -1,0 +1,29 @@
+{
+  "name": "starx",
+  "version": "0.1.0",
+  "description": "Generator executor for ECMAScript 6",
+  "keywords": [
+    "es6", "yield",
+    "generators", "iterators",
+    "coroutines", "asynchronous", "async", "flow",
+    "promises"
+  ],
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/buunguyen/starx.git"
+  },
+  "author": "Buu Nguyen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/buunguyen/starx/issues"
+  },
+  "homepage": "https://github.com/buunguyen/starx",
+  "devDependencies": {
+    "request": "~2.34.0",
+    "chai": "~1.9.0",
+    "mocha": "~1.17.1",
+    "sinon": "~1.9.0",
+    "q": "~1.0.0"
+  }
+} 

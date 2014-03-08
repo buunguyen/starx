@@ -1,0 +1,28 @@
+{
+  "name": "starx",
+  "main": "index.js",
+  "version": "0.1.0",
+  "homepage": "https://github.com/buunguyen/starx",
+  "authors": [
+    "Buu Nguyen <buunguyen@gmail.com>"
+  ],
+  "description": "Generator executor for ECMAScript 6",
+  "keywords": [
+    "es6",
+    "yield",
+    "generators",
+    "iterators",
+    "coroutines",
+    "asynchronous",
+    "async",
+    "promises"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
