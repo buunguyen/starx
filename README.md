@@ -105,21 +105,13 @@ function size(responses) {
 
 #### Parallel download
 ```javascript
-starx = require('starx')
-request = starx.yieldable(require('request'))
-
 starx(function*() {
-  var res1 = yield request("https://www.google.com/")
-  var res2 = yield request("https://www.bing.com/")
-  var res3 = yield request("https://www.yahoo.com/")
-  console.log(size([res1, res2, res3]), "bytes")
+  var r1 = request("https://www.google.com/")
+  var r2 = request("https://www.bing.com/")
+  var r3 = request("https://www.yahoo.com/")
+  var res = yield [r1, r2, r3]
+  console.log(size(res), "bytes")
 })()
-
-function size(responses) {
-  return responses.reduce(function(a, c) {
-    return a + c.body.length
-  }, 0)
-}
 ```
 
 A DRYer version

@@ -96,7 +96,7 @@
   }
 
   function noop() {}
-  // DRY the Rambo way...
+  // Badass DRY
   var fns = ['Array', 'Function', 'String', 'Number'],
       template = (function is$(o) { return Object.prototype.toString.call(o) === '[object $]' }).toString()
   for (var i = 0; fns[i]; i++) eval(template.replace(/\$/g, fns[i]))
