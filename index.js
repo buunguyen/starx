@@ -67,15 +67,15 @@
    * so that it can be used as a 'yieldable' of starx (see @wrap).
    *
    * @param {fn} the function to be converted to a yieldable 
-   * @param {forceArgs} 
+   * @param {argCount} 
    *   if true, pass through only (fn.length-1) arguments
-   *   if number, pass through only (forceArgs-1) arguments
+   *   if number, pass through only (argCount-1) arguments
    *   otherwise, pass through all arguments
    */
-  starx.yieldable = function(fn, forceArgs) {
+  starx.yieldable = function(fn, argCount) {
     if (!isFunction(fn)) throw new TypeError()
     return function() {
-      var end = forceArgs == null ? arguments.length : (forceArgs === true ? fn.length : forceArgs)-1,
+      var end = argCount == null ? arguments.length : (argCount === true ? fn.length : argCount)-1,
           args = [].slice.call(arguments, 0, end), 
           cb, results, called
       args.push(function fake() {

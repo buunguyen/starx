@@ -61,20 +61,20 @@ describe('yieldable', function(){
     })
 
     describe('trim', function() {
-      it('passes through as-is if forceArgs is not supplied', function() {
+      it('passes through as-is if argCount is not supplied', function() {
         function fn(arg, cb) {
           expect(cb).to.be.a('number') // cb is actually the index
         }
         // map -> invoke fn(item, index, array)
         [1, 2, 3].map(y(fn))
       })
-      it('trims passthrough arguments based on function definition when forceArgs is true', function() {
+      it('trims passthrough arguments based on function definition when argCount is true', function() {
         function fn(arg, cb) {
           expect(cb).to.be.a('function')
         }
         [1, 2, 3].map(y(fn, true))
       })
-      it('trims passthrough arguments based on value of forceArgs', function() {
+      it('trims passthrough arguments based on value of argCount', function() {
         function fn(arg, cb) {
           expect(cb).to.be.a('function')
         }
