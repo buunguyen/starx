@@ -20,7 +20,7 @@
   /** 
    * Wraps a `yieldable` into a function that accepts a callback(err, val)
    * Yieldables are one of these
-   * 1. Functions whose only argument is a callback accepting (err, val), see @starx.`()
+   * 1. Functions whose only argument is a callback accepting (err, val)
    * 2. Executors created by starx
    * 3. Promises
    * 4. Values (primitives/objects/null)
