@@ -194,13 +194,14 @@ describe('starx', function() {
       it('dives into the generator', function() {
         var g1 = function*() {
           spy(yield niceGuy)
-          spy(yield niceGuy)
+          return niceGuy
         }
         var g2 = starx(function*() {
-          yield g1()
+          spy(yield g1)
+          spy(yield g1)
         })
         g2()
-        expect(spy.withArgs(TOKEN).calledTwice).to.be.true
+        expect(spy.withArgs(TOKEN).callCount).equal(4)
       })
     })  
 
@@ -208,13 +209,14 @@ describe('starx', function() {
       it('dives into the generator', function() {
         var g1 = function*() {
           spy(yield niceGuy)
-          spy(yield niceGuy)
+          return niceGuy
         }
         var g2 = starx(function*() {
-          yield g1
+          spy(yield g1)
+          spy(yield g1)
         })
         g2()
-        expect(spy.withArgs(TOKEN).calledTwice).to.be.true
+        expect(spy.withArgs(TOKEN).callCount).equal(4)
       })
     }) 
 
