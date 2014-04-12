@@ -190,6 +190,34 @@ describe('starx', function() {
       })
     })  
 
+    describe('when yieldable is a generator', function() {
+      it('dives into the generator', function() {
+        var g1 = function*() {
+          spy(yield niceGuy)
+          spy(yield niceGuy)
+        }
+        var g2 = starx(function*() {
+          yield g1()
+        })
+        g2()
+        expect(spy.withArgs(TOKEN).calledTwice).to.be.true
+      })
+    })  
+
+    describe('when yieldable is a generator', function() {
+      it('dives into the generator', function() {
+        var g1 = function*() {
+          spy(yield niceGuy)
+          spy(yield niceGuy)
+        }
+        var g2 = starx(function*() {
+          yield g1
+        })
+        g2()
+        expect(spy.withArgs(TOKEN).calledTwice).to.be.true
+      })
+    }) 
+
     describe('when yieldable is anything thing else', function() {
       it('returns value directly', function() {
         starx(function*() {
