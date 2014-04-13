@@ -14,8 +14,13 @@
       
       next()
       function next(err, value) {
-        var res = err ? iterator.throw(err) : iterator.next(value)
-        wrap.call(self, res.value).call(self, res.done ? (done || noop) : next)
+        try {
+          var res = err ? iterator.throw(err) : iterator.next(value)
+          wrap.call(self, res.value).call(self, res.done ? (done || noop) : next)
+        } catch (err) {
+          if (done) done(err)
+          else throw err
+        }
       }
     }
   }
