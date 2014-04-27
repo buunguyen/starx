@@ -1,4 +1,4 @@
 test:
-	./node_modules/.bin/mocha --harmony --reporter spec --bail --no-colors
+	./node_modules/.bin/mocha --harmony --reporter spec --bail
 
 .PHONY: test

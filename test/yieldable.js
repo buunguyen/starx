@@ -55,7 +55,6 @@ describe('yieldable', function(){
       fn(function(res) {
         _catch(done, function() {
           expect(res).to.equal(TOKEN)
-          done()    
         })
       })
     })
