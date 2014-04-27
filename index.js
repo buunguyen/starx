@@ -108,7 +108,6 @@
     }
   }
 
-
   function isIterator(obj) {
     return obj && isFunction(obj.next) && isFunction(obj.throw)
   }
@@ -122,7 +121,6 @@
   }
 
   function noop() {}
-  // Badass DRY
   var fns = ['Array', 'Function', 'String', 'Number', 'Boolean'],
       template = (function is$(o) { return Object.prototype.toString.call(o) === '[object $]' }).toString()
   for (var i = 0; fns[i]; i++) eval(template.replace(/\$/g, fns[i]))

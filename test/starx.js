@@ -32,7 +32,6 @@ describe('starx', function() {
 
   it('returns an executor when invoked with a generator or iterator', function() {
     expect(starx(function*() {})).to.be.a('function')
-
     expect(starx((function*() {})())).to.be.a('function')
   })
 
@@ -50,52 +49,60 @@ describe('starx', function() {
     }
 
     describe('when executor is invoked', function() {
-      it('runs generator', function() {
-        starx(SIM_GEN)()
-        expect(spy.calledOnce).to.be.true
+      it('runs generator', function(done) {
+        starx(SIM_GEN)(function() {
+          _catch(done, function() {
+            expect(spy.calledOnce).to.be.true
+          })
+        })
       })
 
-      it('runs iterator', function() {
-        starx(SIM_GEN())()
-        expect(spy.calledOnce).to.be.true
+      it('runs iterator', function(done) {
+        starx(SIM_GEN())(function() {
+          _catch(done, function() {
+            expect(spy.calledOnce).to.be.true
+          })
+        })
       })
 
-      it('allows generator to be reused', function() {
-        starx(SIM_GEN)()
-        starx(SIM_GEN)()
-        expect(spy.calledTwice).to.be.true
+      it('allows generator to be reused', function(done) {
+        var count = 0
+        starx(SIM_GEN)(check)
+        starx(SIM_GEN)(check)
+        function check() {
+          if (++count < 2) return;
+          _catch(done, function() {
+            expect(spy.calledTwice).to.be.true
+          })
+        }
       })
     })
 
     describe('when yieldable is a function(args..., cb)', function() {
-      it('invokes the yielded function automatically', function() {
-        starx(function*() {
-          yield spy
-        })()
-        expect(spy.calledOnce).to.be.true
-      })
-
-      it('sends value of previous call into the generator', function() {
+      it('sends value of previous call into the generator', function(done) {
         starx(function*() {
           var res = yield niceGuy
           expect(res).to.equal(TOKEN)
-        })()
+        })(done)
       })
 
-      it('keeps sending values into the generator', function() {
+      it('keeps sending values into the generator', function(done) {
         starx(function*() {
           for (var i = 0; i < 10; i++) {
             spy(yield niceGuy)
           }
-        })()
-        expect(spy.alwaysCalledWith(TOKEN)).to.be.true
-        expect(spy.callCount).to.equal(10)
+        })(function() {
+          _catch(done, function() {
+            expect(spy.alwaysCalledWith(TOKEN)).to.be.true
+            expect(spy.callCount).to.equal(10)
+          })
+        })
       })
 
       // Terminology watch: 'structured' vs 'unstructured' errors
       // * structured errors are those propogated the right way, i.e. err arg of cb, rejected err of promise...
       // * unstructured errrors are those thrown when yieldable suddently throws up (arrr!)
-      it('throws structured error into the generator', function() {
+      it('throws structured error into the generator', function(done) {
         starx(function*() {
           try {
             yield throwGuy
@@ -105,7 +112,11 @@ describe('starx', function() {
             var res = yield niceGuy
             expect(res).to.equal(TOKEN)
           }
-        })()
+        })(function(err) {
+          _catch(done, function() {
+            expect(err).to.be.null
+          })
+        })
       })
 
       it('waits until async call is completed', function(done) {
@@ -113,7 +124,6 @@ describe('starx', function() {
           _catch(done, function() {
             expect(spy.alwaysCalledWith(TOKEN)).to.be.true
             expect(spy.callCount).to.equal(10)
-            done()
           })
         }
         starx(function*() {
@@ -137,8 +147,7 @@ describe('starx', function() {
         var _done = function() {
           _catch(done, function() {
             expect(spy.alwaysCalledWith(TOKEN)).to.be.true
-            expect(spy.callCount).to.equal(10)
-            done()    
+            expect(spy.callCount).to.equal(10)  
           })
         }
         starx(function*() {
@@ -154,7 +163,6 @@ describe('starx', function() {
           _catch(done, function() {
             expect(spy.alwaysCalledWith(ERROR)).to.be.true
             expect(spy.callCount).to.equal(10)
-            done()
           })
         }
         starx(function*() {
@@ -171,30 +179,40 @@ describe('starx', function() {
     })
 
     describe('when yieldable is an array', function() {
-      it('executes all functions in the array', function() {
+      it('executes all functions in the array', function(done) {
         starx(function*() {
           spy(yield [niceGuy, niceGuy])
-        })()
-        expect(spy.withArgs([TOKEN, TOKEN]).calledOnce).to.be.true
+        })(function() {
+          _catch(done, function() {
+            expect(spy.withArgs([TOKEN, TOKEN]).calledOnce).to.be.true
+          })
+        })
+        
       })
       
-      it('supports nested arrays', function() {
+      it('supports nested arrays', function(done) {
         starx(function*() {
           spy(yield [niceGuy, [niceGuy, [niceGuy, niceGuy]]])
-        })()
-        expect(spy.withArgs([TOKEN, [TOKEN, [TOKEN, TOKEN]]]).calledOnce).to.be.true
+        })(function() {
+          _catch(done, function() {
+            expect(spy.withArgs([TOKEN, [TOKEN, [TOKEN, TOKEN]]]).calledOnce).to.be.true
+          })
+        })
       })
       
-      it('supports mixing different yieldables', function() {
+      it('supports mixing different yieldables', function(done) {
         starx(function*() {
           spy(yield [TOKEN, [niceGuy, 1]])
-        })()
-        expect(spy.withArgs([TOKEN, [TOKEN, 1]]).calledOnce).to.be.true
+        })(function() {
+          _catch(done, function() {
+            expect(spy.withArgs([TOKEN, [TOKEN, 1]]).calledOnce).to.be.true
+          })
+        })
       })
     })  
 
     describe('when yieldable is an executor', function() {
-      it('executes the executor\'s return value as a yieldable', function() {
+      it('executes the executor\'s return value as a yieldable', function(done) {
         var g1 = starx(function*() {
           return niceGuy
         })
@@ -202,14 +220,18 @@ describe('starx', function() {
           return [niceGuy, niceGuy]
         })
         starx(function*() {
-          spy(yield [g1, g2])
-        })()
-        expect(spy.withArgs([TOKEN, [TOKEN, TOKEN]]).calledOnce).to.be.true
+          var a = yield [g1, g2]
+          spy(a)
+        })(function() {
+          _catch(done, function() {
+            expect(spy.withArgs([TOKEN, [TOKEN, TOKEN]]).calledOnce).to.be.true
+          })
+        })
       })
     })  
 
     describe('when yieldable is a iterator or generator', function() {
-      it('dives into the iterator', function() {
+      it('dives into the iterator', function(done) {
         var g1 = function*() {
           spy(yield niceGuy)
           return niceGuy
@@ -217,130 +239,114 @@ describe('starx', function() {
         var g2 = starx(function*() {
           spy(yield g1())
           spy(yield g1())
+        })(function() {
+          _catch(done, function() {
+            expect(spy.withArgs(TOKEN).callCount).equal(4)
+          })
         })
-        g2()
-        expect(spy.withArgs(TOKEN).callCount).equal(4)
       })
 
-      it('dives into the generator', function() {
+      it('dives into the generator', function(done) {
         var g1 = function*() {
           spy(yield niceGuy)
           return niceGuy
         }
-        var g2 = starx(function*() {
+        starx(function*() {
           spy(yield g1)
           spy(yield g1)
+        })(function() {
+          _catch(done, function() {
+            expect(spy.withArgs(TOKEN).callCount).equal(4)
+          })
         })
-        g2()
-        expect(spy.withArgs(TOKEN).callCount).equal(4)
       })
 
-      it('injects error thrown in nested generator', function() {
-        var g1 = function*() {
-          throw ERROR
-        }
-        var g2 = starx(function*() {
+      it('injects error thrown in nested generator', function(done) {
+        starx(function*() {
           try {
-            yield g1
+            yield function *() {
+              throw ERROR
+            }
             assert(false, 'should not come here')
           } catch(e) {
-            expect(e).to.be.equal(ERROR)
+            _catch(done, function() {
+              expect(e).to.be.equal(ERROR) 
+            })
           }
+        })()
+      })
+
+      it('xxx xxxx', function(done) {
+        var g1 = function *() {
+          throw ERROR
+        }
+        starx(function *() {
+          try {
+            yield g1  
+          }
+          catch (e) {
+            throw e
+          }
+        })(function(e) {
+          _catch(done, function() {
+            expect(e).to.be.equal(ERROR)
+          })
         })
-        g2()
       })
     })   
 
     describe('when yieldable is anything else', function() {
-      it('returns value directly', function() {
+      it('returns value directly', function(done) {
         starx(function*() {
           spy(yield TOKEN)
           spy(yield 1)
           var res = yield
           spy(res)
-        })()
-        expect(spy.firstCall.calledWithExactly(TOKEN)).to.be.true
-        expect(spy.secondCall.calledWithExactly(1)).to.be.true
-        expect(spy.thirdCall.calledWithExactly(undefined)).to.be.true
+        })(function() {
+          _catch(done, function() {
+            expect(spy.firstCall.calledWithExactly(TOKEN)).to.be.true
+            expect(spy.secondCall.calledWithExactly(1)).to.be.true
+            expect(spy.thirdCall.calledWithExactly(undefined)).to.be.true
+          })
+        })
       })
     })
 
     describe('when there is an unstructured error', function() {
-      it('rethrows if no callback is given and there is an unstructured error', function() {
-        try {
-          starx(function*() {
-            yield niceGuy
+      it('invokes callback with err when generator throws', function(done) {
+        starx(function*() {
+          yield niceGuy
+          throw ERROR
+          assert(false, 'should not come here')
+        })(function(e) {
+          _catch(done, function() {
+            expect(e).to.be.equal(ERROR)   
+          })
+        })
+      })
+
+      it('as above when callback throws', function(done) {
+        starx(function*() {
+          yield function(cb) {
             throw ERROR
-          })()
+          }
           assert(false, 'should not come here')
-        } catch (e) {
-          expect(e).to.be.equal(ERROR)
-        }
+        })(function(e) {
+          _catch(done, function() {
+            expect(e).to.be.equal(ERROR)   
+          })
+        })
       })
 
-      it('invokes callback with err when generator throws', function() {
-        try {
-          starx(function*() {
-            yield niceGuy
-            throw ERROR
-            assert(false, 'should not come here')
-          })(function(e) {
+      it('as above when injected (structured) error is not handled', function(done) {
+        starx(function*() {
+          yield throwGuy
+          assert(false, 'should not come here')
+        })(function(e) {
+          _catch(done, function() {
             expect(e).to.be.equal(ERROR) 
           })
-        } catch (e) {
-          assert(false, 'should not come here')
-        }
-      })
-
-      it('as above when callback throws', function() {
-        try {
-          starx(function*() {
-            yield function(cb) {
-              throw ERROR
-            }
-          })()
-          assert(false, 'should not come here')
-        } catch (e) {
-          expect(e).to.be.equal(ERROR)
-        }
-
-        try {
-          starx(function*() {
-            yield function(cb) {
-              throw ERROR
-            }
-            assert(false, 'should not come here')
-          })(function(e) {
-            expect(e).to.be.equal(ERROR) 
-          })
-        } catch (e) {
-          assert(false, 'should not come here')
-        }
-      })
-
-      it('as above when injected (structured) error is not handled', function() {
-        try {
-          starx(function*() {
-            // supposed to try-catch this, but not
-            yield throwGuy
-            assert(false, 'should not come here')
-          })(function(e) {
-            expect(e).to.be.equal(ERROR) 
-          })
-        } catch (e) {
-          assert(false, 'should not come here')
-        }
-
-        try {
-          starx(function*() {
-            // supposed to try-catch this, but not
-            yield throwGuy
-            assert(false, 'should not come here')
-          })()
-          assert(false, 'should not come here')
-        } catch (e) {
-          expect(e).to.be.equal(ERROR)
-        }
+        })
       })
     })
   })
