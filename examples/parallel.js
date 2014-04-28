@@ -15,5 +15,5 @@ starx(function*() {
     "https://www.google.com/", 
     "https://www.bing.com/", 
     "https://www.yahoo.com/"].map(request)
-  console.log(size(yield res), "bytes")
+  console.log(size(res), "bytes")
 })()

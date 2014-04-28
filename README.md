@@ -39,6 +39,7 @@ This executor, when invoked, keeps calling `generator.next()` until the generato
 * A promise (anything with a then(callback, errback))
 * A value (primitive, object, null)
 * Another executor created by **starx**
+* A generator or iterator
 * An array of the aboves (nesting okay)
 
 #### Yieldable functions
@@ -120,7 +121,7 @@ starx(function*() {
   var res = yield [urls].map(function(url) {
     return request(url)
   })
-  console.log(size(yield res), "bytes")
+  console.log(size(res), "bytes")
 })()
 ```
 
@@ -140,7 +141,7 @@ We can revise the previous example as follows:
 request = starx.yieldable(require('request'), true /* argCount */)
 starx(function*() {
   var res = yield [urls].map(request)
-  console.log(size(yield res), "bytes")
+  console.log(size(res), "bytes")
 })()
 ```
 
