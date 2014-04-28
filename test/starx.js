@@ -42,9 +42,22 @@ describe('starx', function() {
     var throwGuy = function(cb) {
       cb(ERROR)
     }
-    var asyncGuy = function(cb) {
-      process.nextTick(function() {
-        cb(null, TOKEN)
+    var asyncNiceGuy = function(cb) {
+      setTimeout(function() {
+        setImmediate(function() {
+          process.nextTick(function() {
+            cb(null, TOKEN)
+          })
+        })
+      })
+    }
+    var asyncThrowGuy = function() {
+      setTimeout(function() {
+        setImmediate(function() {
+          process.nextTick(function() {
+            throw ERROR
+          })
+        })
       })
     }
 
@@ -78,6 +91,31 @@ describe('starx', function() {
       })
     })
 
+    describe('when generator throws', function() {
+      it('handles exception', function(done) {
+        starx(function *() {
+          throw ERROR
+        })(function(err) {
+          _catch(done, function() {
+            expect(err).to.equal(ERROR)
+          })
+        })
+      })
+
+      it('handles asynchronous exception if the iterator has not completed', function(done) {
+        starx(function *() {
+          setTimeout(function() {
+            throw ERROR
+          }, 10)
+          yield function(cb) {}
+        })(function(err) {
+          _catch(done, function() {
+            expect(err).to.equal(ERROR)
+          })
+        })
+      })
+    })
+
     describe('when yieldable is a function(args..., cb)', function() {
       it('sends value of previous call into the generator', function(done) {
         starx(function*() {
@@ -99,18 +137,13 @@ describe('starx', function() {
         })
       })
 
-      // Terminology watch: 'structured' vs 'unstructured' errors
-      // * structured errors are those propogated the right way, i.e. err arg of cb, rejected err of promise...
-      // * unstructured errrors are those thrown when yieldable suddently throws up (arrr!)
-      it('throws structured error into the generator', function(done) {
+      it('injects error into the generator', function(done) {
         starx(function*() {
           try {
             yield throwGuy
             assert(false, 'should not come here')
           } catch(e) {
             expect(e).to.be.equal(ERROR)
-            var res = yield niceGuy
-            expect(res).to.equal(TOKEN)
           }
         })(function(err) {
           _catch(done, function() {
@@ -128,7 +161,7 @@ describe('starx', function() {
         }
         starx(function*() {
           for (var i = 0; i < 10; i++) {
-            spy(yield asyncGuy)
+            spy(yield asyncNiceGuy)
             if (i === 9) _done()
           }
         })()
@@ -187,7 +220,6 @@ describe('starx', function() {
             expect(spy.withArgs([TOKEN, TOKEN]).calledOnce).to.be.true
           })
         })
-        
       })
       
       it('supports nested arrays', function(done) {
@@ -231,12 +263,13 @@ describe('starx', function() {
     })  
 
     describe('when yieldable is a iterator or generator', function() {
+      var g1 = function*() {
+        spy(yield niceGuy)
+        return niceGuy
+      }
+
       it('dives into the iterator', function(done) {
-        var g1 = function*() {
-          spy(yield niceGuy)
-          return niceGuy
-        }
-        var g2 = starx(function*() {
+        starx(function*() {
           spy(yield g1())
           spy(yield g1())
         })(function() {
@@ -247,10 +280,6 @@ describe('starx', function() {
       })
 
       it('dives into the generator', function(done) {
-        var g1 = function*() {
-          spy(yield niceGuy)
-          return niceGuy
-        }
         starx(function*() {
           spy(yield g1)
           spy(yield g1)
@@ -276,22 +305,19 @@ describe('starx', function() {
         })()
       })
 
-      it('xxx xxxx', function(done) {
-        var g1 = function *() {
-          throw ERROR
-        }
-        starx(function *() {
+      it('injects async error thrown in nested generator', function(done) {
+        starx(function*() {
           try {
-            yield g1  
+            yield function *() {
+              yield asyncThrowGuy
+            }
+            assert(false, 'should not come here')
+          } catch(e) {
+            _catch(done, function() {
+              expect(e).to.be.equal(ERROR) 
+            })
           }
-          catch (e) {
-            throw e
-          }
-        })(function(e) {
-          _catch(done, function() {
-            expect(e).to.be.equal(ERROR)
-          })
-        })
+        })()
       })
     })   
 
@@ -312,39 +338,37 @@ describe('starx', function() {
       })
     })
 
-    describe('when there is an unstructured error', function() {
-      it('invokes callback with err when generator throws', function(done) {
+
+    describe('when yieldable throws', function() {
+      it('supports unhandled error in yieldable', function(done) {
         starx(function*() {
-          yield niceGuy
-          throw ERROR
-          assert(false, 'should not come here')
+          try {
+            yield function(cb) {
+              throw ERROR
+            }
+          } catch (e) {
+            expect(e).to.be.equal(ERROR)
+            spy(TOKEN)
+          }
         })(function(e) {
           _catch(done, function() {
-            expect(e).to.be.equal(ERROR)   
+            expect(spy.withArgs(TOKEN).callCount).equal(1)
           })
         })
       })
 
-      it('as above when callback throws', function(done) {
+      it('supports unhandled asynchronous error in yieldable', function(done) {
         starx(function*() {
-          yield function(cb) {
-            throw ERROR
+          try {
+            yield asyncThrowGuy
+          } catch (e) {
+            expect(e).to.be.equal(ERROR)
+            spy(TOKEN)
           }
           assert(false, 'should not come here')
         })(function(e) {
           _catch(done, function() {
-            expect(e).to.be.equal(ERROR)   
-          })
-        })
-      })
-
-      it('as above when injected (structured) error is not handled', function(done) {
-        starx(function*() {
-          yield throwGuy
-          assert(false, 'should not come here')
-        })(function(e) {
-          _catch(done, function() {
-            expect(e).to.be.equal(ERROR) 
+            expect(spy.withArgs(TOKEN).callCount).equal(1)
           })
         })
       })

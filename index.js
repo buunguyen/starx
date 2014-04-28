@@ -1,4 +1,6 @@
 ;(function() {
+  var domain = require('domain')
+
   if (typeof module !== 'undefined' && module.exports) module.exports = starx
   else window.starx = starx
 
@@ -9,18 +11,41 @@
     if (!isGenerator(obj) && !isIterator(obj)) throw new TypeError('obj must be a generator or iterator')
 
     return function executor(done) {
-      var self = this
-      var iterator = isGenerator(obj) ? obj.call(self) : obj
+      var self = this,
+          done = once(done || noop),
+          iterator = isGenerator(obj) ? obj.call(self) : obj
+
+      process.nextTick(next)
+      function next(err, value) {    
+        var res, called
+
+        domain.create()
+          .on('error', done)
+          .run(function() {
+            res = err ? iterator.throw(err) : iterator.next(value)
+          })
       
-      next()
-      function next(err, value) {
-        try {
-          var res = err ? iterator.throw(err) : iterator.next(value)
-          wrap.call(self, res.value).call(self, res.done ? (done || noop) : next)
-        } catch (err) {
-          if (done) done(err)
-          else throw err
-        }
+        domain.create()
+          .on('error', function(err) {
+            if (called) return
+            called = true
+
+            // I wish there were a better way to check for exhausted iterator
+            try {
+              next(err)
+            } catch (ignored) {
+              done(err)
+            }
+          })
+          .run(function() {
+            var resFn = wrap.call(self, res.value)
+            resFn.call(self, function() {
+              if (called) return
+              called = true
+              var cb = res.done ? done : next
+              cb.apply(null, arguments)
+            })
+          })
       }
     }
   }
@@ -105,6 +130,15 @@
           cb.apply(this, results)
         }
       }
+    }
+  }
+
+  function once(fn) {
+    var called = false
+    return function() {
+      if (called) return
+      called = true
+      fn.apply(this, arguments)
     }
   }
 
