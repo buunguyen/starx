@@ -1,4 +1,4 @@
-starx   = require('../index')
+starx    = require('../lib')
 readFile = starx.yieldable(require('fs').readFile)
 
 starx(function*() {

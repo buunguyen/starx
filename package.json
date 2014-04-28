@@ -1,6 +1,6 @@
 {
   "name": "starx",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Generator executor for ECMAScript 6",
   "keywords": [
     "es6", "yield",
@@ -8,7 +8,7 @@
     "coroutines", "asynchronous", "async", "flow",
     "promises"
   ],
-  "main": "index.js",
+  "main": "lib/index.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/buunguyen/starx.git"

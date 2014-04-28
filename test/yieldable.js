@@ -1,7 +1,4 @@
 require('./helper')
-var expect = require('chai').expect
-var sinon  = require('sinon')
-var y      = require('../index').yieldable
 
 describe('yieldable', function(){
   var spy, TOKEN = function() {}

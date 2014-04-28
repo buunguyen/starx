@@ -1,8 +1,4 @@
-var expect = require('chai').expect
-var assert = require('chai').assert
-var sinon  = require('sinon')
-var Q      = require('q')
-var starx  = require('../index')
+require('./helper')
 
 describe('starx', function() {
   var spy,
@@ -369,6 +365,18 @@ describe('starx', function() {
         })(function(e) {
           _catch(done, function() {
             expect(spy.withArgs(TOKEN).callCount).equal(1)
+          })
+        })
+      })
+
+      it('handles the case when yieldable throws and generator is exhausted', function(done) {
+        starx(function*() {
+          yield function(cb) {
+            throw ERROR
+          }
+        })(function(e) {
+          _catch(done, function() {
+            expect(e).to.be.equal(ERROR)
           })
         })
       })

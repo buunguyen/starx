@@ -1,5 +1,5 @@
 require('./helper')
-starx   = require('../index')
+starx   = require('../lib')
 request = starx.yieldable(require('request'))
 
 starx(function*() {
