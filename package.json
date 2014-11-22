@@ -1,6 +1,6 @@
 {
   "name": "starx",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Generator executor for ECMAScript 6",
   "keywords": [
     "es6", "yield",
